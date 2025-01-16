@@ -52,7 +52,7 @@ def send_message(bot, message):
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logging.debug(f'Бот отправил сообщение: "{message}"')
-    except TelegramError as error:
+    except Exception as error:  # Перехватываем любые исключения
         logging.error(f'Ошибка при отправке сообщения: {error}')
 
 
