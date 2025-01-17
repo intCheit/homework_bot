@@ -105,9 +105,10 @@ def check_response(response):
 
 def parse_status(homework):
     """Извлекает статус работы."""
-    if 'homework_name' not in homework or 'status' not in homework:
+    missing_keys = [key for key in ('homework_name', 'status') if key not in homework]
+    if missing_keys:
         raise KeyError(
-            'Отсутствуют ключи "homework_name" или "status" в ответе API'
+            f'Отсутствуют ключи в ответе API: {", ".join(missing_keys)}'
         )
     homework_name = homework['homework_name']
     status = homework['status']
@@ -123,7 +124,7 @@ def main():
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
-    last_error = None
+    last_error = ""
 
     while True:
         try:
