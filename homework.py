@@ -7,7 +7,6 @@ import requests
 from dotenv import load_dotenv
 from telebot import TeleBot
 
-
 load_dotenv()
 
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
@@ -24,13 +23,6 @@ HOMEWORK_VERDICTS = {
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s, %(levelname)s, %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-
-
 def check_tokens():
     """Проверяет наличие всех необходимых переменных окружения."""
     tokens = {
@@ -38,14 +30,13 @@ def check_tokens():
         'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
         'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID
     }
-    for name, value in tokens.items():
-        if not value:
-            logging.critical(
-                f"Отсутствует обязательная переменная окружения: '{name}'"
-            )
-            return False
+    missing_tokens = [name for name, value in tokens.items() if not value]
+    if missing_tokens:
+        logging.critical(
+            f"Отсутствуют обязательные переменные окружения: {', '.join(missing_tokens)}"
+        )
+        return False
     return True
-
 
 def send_message(bot, message):
     """Отправляет сообщение в Telegram."""
@@ -54,7 +45,6 @@ def send_message(bot, message):
         logging.debug(f'Бот отправил сообщение: "{message}"')
     except Exception as error:  # Перехватываем любые исключения
         logging.error(f'Ошибка при отправке сообщения: {error}')
-
 
 def get_api_answer(timestamp):
     """Делает запрос к API."""
@@ -70,7 +60,6 @@ def get_api_answer(timestamp):
     except requests.RequestException as error:
         raise Exception(f'Сбой при запросе к эндпоинту: {error}')
 
-
 def check_response(response):
     """Проверяет ответ API на корректность."""
     if not isinstance(response, dict):
@@ -82,7 +71,6 @@ def check_response(response):
     if not isinstance(response['homeworks'], list):
         raise TypeError('Тип данных "homeworks" не является списком')
     return response['homeworks']
-
 
 def parse_status(homework):
     """Извлекает статус работы."""
@@ -96,7 +84,6 @@ def parse_status(homework):
         raise ValueError(f'Неизвестный статус работы: {status}')
     verdict = HOMEWORK_VERDICTS[status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
-
 
 def main():
     """Основная логика работы бота."""
@@ -129,6 +116,10 @@ def main():
         finally:
             time.sleep(RETRY_PERIOD)
 
-
 if __name__ == '__main__':
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s, %(levelname)s, %(message)s',
+        handlers=[logging.StreamHandler(sys.stdout)]
+    )
     main()
