@@ -53,21 +53,22 @@ def check_tokens():
 
 def send_message(bot, message):
     """Отправляет сообщение в Telegram."""
+    logging.debug(f'Начало отправки сообщения: "{message}"')
     bot.send_message(TELEGRAM_CHAT_ID, message)
     logging.debug(f'Бот отправил сообщение: "{message}"')
 
 
 def get_api_answer(timestamp):
     """Делает запрос к API."""
-    logging.debug(
-        f'Отправка запроса к API. URL: {ENDPOINT}, '
-        f'параметры: {{"from_date": {timestamp}}}'
-    )
+    logging.debug(f'Начало отправки запроса к API. URL: {ENDPOINT},'
+                  f'параметры: {{"from_date": {timestamp}}}')
 
     try:
         response = requests.get(
             ENDPOINT, headers=HEADERS, params={'from_date': timestamp}
         )
+        logging.debug(f'Ответ получен от API.'
+                      f'Код состояния: {response.status_code}')
     except requests.RequestException as error:
         raise APIRequestError(
             f'Сбой при запросе к API. Эндпоинт: {ENDPOINT}, '
@@ -91,6 +92,7 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """Проверяет ответ API на корректность."""
+    logging.debug('Начало проверки ответа API')
     if not isinstance(response, dict):
         raise TypeError(
             f'Ответ API не является словарём,'
@@ -105,11 +107,13 @@ def check_response(response):
             f'Тип данных "homeworks" не является списком,'
             f'получен тип: {type(response["homeworks"]).__name__}'
         )
+    logging.debug('Проверка ответа завершена успешно')
     return response['homeworks']
 
 
 def parse_status(homework):
     """Извлекает статус работы."""
+    logging.debug('Начало извлечения статуса работы')
     missing_keys = [key for key in ('homework_name', 'status')
                     if key not in homework]
     if missing_keys:
@@ -121,6 +125,7 @@ def parse_status(homework):
     if status not in HOMEWORK_VERDICTS:
         raise ValueError(f'Неизвестный статус работы: {status}')
     verdict = HOMEWORK_VERDICTS[status]
+    logging.debug('Статус работы извлечён успешно')
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
