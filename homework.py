@@ -1,12 +1,14 @@
+import logging
 import os
 import sys
 import time
-import logging
+from contextlib import suppress
 from http import HTTPStatus
 
 import requests
 from dotenv import load_dotenv
 from telebot import TeleBot
+from telebot.apihelper import ApiTelegramException
 
 load_dotenv()
 
@@ -125,27 +127,35 @@ def main():
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
     last_error = ""
+    last_message = ""
 
     while True:
         try:
             response = get_api_answer(timestamp)
             homeworks = check_response(response)
-            if homeworks:
-                for homework in homeworks:
-                    message = parse_status(homework)
-                    send_message(bot, message)
-            else:
+
+            if not homeworks:
                 logging.debug('Отсутствуют новые статусы в ответе API')
+                time.sleep(RETRY_PERIOD)
+                continue
+
+            # Обработка первого элемента списка homeworks
+            homework = homeworks[0]
+            message = parse_status(homework)
+
+            if message != last_message:
+                send_message(bot, message)
+                last_message = message
+
             timestamp = response.get('current_date', timestamp)
-        except APIRequestError as api_error:
-            logging.error(f'Ошибка при запросе к API: {api_error}')
-            if last_error != str(api_error):
-                send_message(bot, f'Ошибка при запросе к API: {api_error}')
-                last_error = str(api_error)
-        except Exception as error:
-            logging.error(f'Сбой в работе программы: {error}')
+        except ApiTelegramException as tg_error:
+            logging.error(f'Ошибка Telegram API: {tg_error}')
+        except (APIRequestError, Exception) as error:
+            error_message = f'Сбой в работе программы: {error}'
+            logging.error(error_message)
             if last_error != str(error):
-                send_message(bot, f'Сбой в работе программы: {error}')
+                with suppress(Exception):
+                    send_message(bot, error_message)
                 last_error = str(error)
         finally:
             time.sleep(RETRY_PERIOD)
