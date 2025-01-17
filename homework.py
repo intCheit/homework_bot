@@ -60,7 +60,8 @@ def send_message(bot, message):
 def get_api_answer(timestamp):
     """Делает запрос к API."""
     logging.debug(
-        f'Отправка запроса к API. URL: {ENDPOINT}, параметры: {{"from_date": {timestamp}}}'
+        f'Отправка запроса к API. URL: {ENDPOINT}, '
+        f'параметры: {{"from_date": {timestamp}}}'
     )
 
     try:
@@ -92,7 +93,8 @@ def check_response(response):
     """Проверяет ответ API на корректность."""
     if not isinstance(response, dict):
         raise TypeError(
-            f'Ответ API не является словарём, получен тип: {type(response).__name__}'
+            f'Ответ API не является словарём,'
+            f'получен тип: {type(response).__name__}'
         )
     if 'homeworks' not in response:
         raise KeyError(
@@ -100,14 +102,16 @@ def check_response(response):
         )
     if not isinstance(response['homeworks'], list):
         raise TypeError(
-            f'Тип данных "homeworks" не является списком, получен тип: {type(response["homeworks"]).__name__}'
+            f'Тип данных "homeworks" не является списком,'
+            f'получен тип: {type(response["homeworks"]).__name__}'
         )
     return response['homeworks']
 
 
 def parse_status(homework):
     """Извлекает статус работы."""
-    missing_keys = [key for key in ('homework_name', 'status') if key not in homework]
+    missing_keys = [key for key in ('homework_name', 'status')
+                    if key not in homework]
     if missing_keys:
         raise KeyError(
             f'Отсутствуют ключи в ответе API: {", ".join(missing_keys)}'
