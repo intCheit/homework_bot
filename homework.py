@@ -39,12 +39,11 @@ def check_tokens():
     missing_tokens = [name for name, value in tokens.items() if not value]
     if missing_tokens:
         missing = ', '.join(missing_tokens)
-        logging.critical(
+        error_message = (
             f"Отсутствуют обязательные переменные окружения: {missing}"
         )
-        raise EnvironmentError(
-            f"Отсутствуют обязательные переменные окружения: {missing}"
-        )
+        logging.critical(error_message)
+        raise EnvironmentError(error_message)
 
 
 def send_message(bot, message):
@@ -131,7 +130,6 @@ def main():
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
-    last_error = ""
     last_message = ""
 
     while True:
@@ -141,7 +139,6 @@ def main():
 
             if not homeworks:
                 logging.debug('Отсутствуют новые статусы в ответе API')
-                time.sleep(RETRY_PERIOD)
                 continue
 
             # Обработка первого элемента списка homeworks
@@ -158,10 +155,10 @@ def main():
         except (APIRequestError, Exception) as error:
             error_message = f'Сбой в работе программы: {error}'
             logging.error(error_message)
-            if last_error != str(error):
+            if error_message != last_message:
                 with suppress(Exception):
                     send_message(bot, error_message)
-                last_error = str(error)
+                last_message = error_message
         finally:
             time.sleep(RETRY_PERIOD)
 
