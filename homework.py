@@ -139,6 +139,7 @@ def main():
 
             if not homeworks:
                 logging.debug('Отсутствуют новые статусы в ответе API')
+                time.sleep(RETRY_PERIOD)
                 continue
 
             # Обработка первого элемента списка homeworks
@@ -150,17 +151,19 @@ def main():
                 last_message = message
 
             timestamp = response.get('current_date', timestamp)
-        except ApiTelegramException as tg_error:
-            logging.error(f'Ошибка Telegram API: {tg_error}')
-        except (APIRequestError, Exception) as error:
+        except (ApiTelegramException, requests.RequestException) as tg_error:
+            error_message = f'Ошибка Telegram API или сети: {tg_error}'
+            logging.error(error_message)
+        except Exception as error:
             error_message = f'Сбой в работе программы: {error}'
             logging.error(error_message)
-            if error_message != last_message:
+            if last_message != error_message:
                 with suppress(Exception):
                     send_message(bot, error_message)
                 last_message = error_message
         finally:
             time.sleep(RETRY_PERIOD)
+
 
 
 if __name__ == '__main__':
