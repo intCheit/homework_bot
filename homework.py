@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 from telebot import TeleBot
 from telebot.apihelper import ApiTelegramException
 
+from exceptions import APIRequestError
+
 load_dotenv()
 
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
@@ -25,12 +27,6 @@ HOMEWORK_VERDICTS = {
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
-
-
-class APIRequestError(ConnectionError):
-    """Исключение для ошибок при запросе к API."""
-
-    pass
 
 
 def check_tokens():
